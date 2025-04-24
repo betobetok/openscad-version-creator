@@ -1,0 +1,19 @@
+{
+    "set_name": "dice5-1_($font)__($fontSize)__(cut_corners)__(name)_",
+    "set": {
+        "$var1": "-array",
+        "$var2": "-range",
+        "$var3": "-static"
+        "$var4": "variable"
+    },
+    "variables": {
+        "$var1": [
+            "value1",
+            "value1",
+            "value1"
+        ],
+        "$var2": "[0:0.1:2]",
+        "$var3": "value",
+        "$var4": 123
+    }
+}

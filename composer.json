@@ -1,0 +1,17 @@
+{
+    "name": "a.kraemer/openscad-version-creator",
+    "description": "A script to process JSON input files and generate output files for OpenSCAD projects.",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "VersionCreator\\": "src/"
+        }
+    },
+    "bin": [
+        "bin/openscad-executor"
+    ]
+}
