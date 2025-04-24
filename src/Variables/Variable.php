@@ -25,6 +25,7 @@ abstract class Variable
                     return new OStatic($value, $name);
                 }
         }
+        return new OArray($value, $name);
     }
 
     public function getType()

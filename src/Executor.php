@@ -4,14 +4,22 @@ namespace VersionCreator;
 
 class Executor
 {
-    private string $outputDirectory;
-    private string $scadFileName;
-    private string $jsonInput;
+    private string $outputDirectory; // Directory where output files will be stored
+    private string $scadFileName;    // Name of the SCAD file to process
+    private string $jsonInput;      // JSON input file name
 
+    /**
+     * Constructor for the Executor class.
+     * Initializes the output directory, creating it if it doesn't exist.
+     *
+     * @param string $outputDirectory Optional output directory path.
+     */
     public function __construct(string $outputDirectory = '')
     {
+        // If no output directory is provided, use the default directory
         if (empty($outputDirectory) === true) {
-            $outputDirectory =  ROOT_DIR . '/ScadVersions/Output';
+            $outputDirectory =  (ROOT_DIR ?? '.') . '/ScadVersions/Output';
+            // Create the directory if it doesn't exist
             if (is_dir($outputDirectory) === false) {
                 mkdir($outputDirectory, 0777, true);
             }
@@ -19,8 +27,15 @@ class Executor
         $this->outputDirectory = $outputDirectory;
     }
 
+    /**
+     * Main method to process the SCAD file and generate outputs.
+     *
+     * @param string $scadFileName Name of the SCAD file to process.
+     * @param array $options Additional options for processing.
+     */
     public function run(string $scadFileName, array $options = [])
     {
+        // Determine the JSON input and SCAD file names based on the provided file name
         if (str_ends_with($scadFileName, '.scad') === false) {
             $jsonInput = substr($scadFileName, 0, -4) . '.json';
             $fileName = substr($scadFileName, 0, -5);
@@ -29,33 +44,39 @@ class Executor
             $scadFileName = $scadFileName . '.scad';
             $jsonInput = $scadFileName . '.json';
         }
+
+        // Determine the JSON output file name
         $jsonOutputFile = empty($options['output-json']) === false ? $options['output-json'] : $fileName . '.json';
         $outputDirectory = $this->outputDirectory;
 
+        // Get the JSON input file from options
         $jsonInput = $options['i'] ?? $options['jsoni'];
 
+        // If the JSON output file exists, load its content; otherwise, generate it
         if (file_exists($jsonOutputFile)) {
             $result = json_decode(file_get_contents($jsonOutputFile), true);
         } else {
-            $versions = new Version($jsonInput);
-            $result = $versions->toArray();
-            $result['count'] = count($result['parameterSets']);
-            file_put_contents($jsonOutputFile, json_encode($result));
+            $versions = new Version($jsonInput); // Create a Version object from the JSON input
+            $result = $versions->toArray();     // Convert the version data to an array
+            $result['count'] = count($result['parameterSets']); // Add a count of parameter sets
+            file_put_contents($jsonOutputFile, json_encode($result)); // Save the result to the JSON output file
         }
 
-        // Directorios
+        // Define directories for PNG and STL outputs
         $pngDir = $outputDirectory . '_png/';
         $stlDir = $outputDirectory . '_stl/';
-        $missingPng = [];
-        $missingStl = [];
+        $missingPng = []; // List of missing PNG files
+        $missingStl = []; // List of missing STL files
 
+        // Create the directories if they don't exist
         if (is_dir($stlDir) === false) {
             mkdir($stlDir);
         }
         if (is_dir($pngDir) === false) {
             mkdir($pngDir);
         }
-        // Recopilar archivos que faltan
+
+        // Identify missing PNG and STL files based on the parameter sets
         foreach ($result['parameterSets'] as $name => $item) {
             if (!file_exists($pngDir . $name . '.png') && key_exists('images', $options) === true) {
                 $missingPng[] = $name;
@@ -66,13 +87,13 @@ class Executor
             }
         }
 
-        // Generar PNGs en paralelo
+        // Generate missing PNG files in parallel if the 'images' option is enabled
         if (!empty($missingPng) && key_exists('images', $options) === true) {
             $commands = array_map(fn($name) => "openscad --render -q -o {$pngDir}{$name}.png -p {$jsonOutputFile} -P {$name} {$scadFileName}.scad", $missingPng);
             self::parallelExec($commands);
         }
 
-        // Generar STLs en paralelo
+        // Generate missing STL files in parallel
         if (!empty($missingStl)) {
             $commands = array_map(fn($name) => "openscad -q -o {$stlDir}{$name}.stl -p {$jsonOutputFile} -P {$name} {$fileName}.scad", $missingStl);
             self::parallelExec($commands);
@@ -80,29 +101,39 @@ class Executor
     }
 
     /**
-     * Ejecuta comandos en paralelo
-     * @param array $commands
-     * @param int $concurrency
+     * Executes an array of commands in parallel with a specified concurrency level.
+     *
+     * @param array $commands List of commands to execute.
+     * @param int $concurrency Number of commands to run in parallel.
      */
     static public function parallelExec(array $commands, int $concurrency = 4)
     {
-        $processes = [];
+        $processes = []; // List of active processes
 
+        // Split commands into chunks based on the concurrency level
         foreach (array_chunk($commands, $concurrency) as $chunk) {
             foreach ($chunk as $command) {
-                echo '.';
-                $processes[] = proc_open($command, [], $pipes);
+                echo '.'; // Print a dot for progress indication
+                $processes[] = proc_open($command, [], $pipes); // Start the process
             }
-            // Esperar a que terminen los procesos
+            // Wait for all processes in the current chunk to finish
             foreach ($processes as $process) {
                 if (is_resource($process)) {
                     proc_close($process);
                 }
             }
-            $processes = [];
+            $processes = []; // Clear the process list for the next chunk
         }
     }
 
+    /**
+     * Replaces a placeholder in a string with a sanitized value.
+     *
+     * @param string $name The original string containing the placeholder.
+     * @param string $placeholder The placeholder to replace.
+     * @param string $value The value to replace the placeholder with.
+     * @return string The modified string with the placeholder replaced.
+     */
     function makeName($name, $placeholder, $value): string
     {
         return str_replace('(' . $placeholder . ')',  preg_replace("/[^A-Za-z0-9]/", '-', $value), $name);
