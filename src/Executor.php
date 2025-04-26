@@ -18,7 +18,7 @@ class Executor
     {
         // If no output directory is provided, use the default directory
         if (empty($outputDirectory) === true) {
-            $outputDirectory =  (ROOT_DIR ?? '.') . '/ScadVersions/Output';
+            $outputDirectory =  (constant('ROOT_DIR') ?? '.') . '/ScadVersions/Output';
             // Create the directory if it doesn't exist
             if (is_dir($outputDirectory) === false) {
                 mkdir($outputDirectory, 0777, true);
