@@ -7,6 +7,9 @@ class Executor
     private string $outputDirectory; // Directory where output files will be stored
     private string $scadFileName;    // Name of the SCAD file to process
     private string $jsonInput;      // JSON input file name
+    private string $jsonOutputFile; // JSON output file name
+    private Version $version; // Version object for processing
+
 
     /**
      * Constructor for the Executor class.
@@ -37,7 +40,7 @@ class Executor
      *     - 'images': Boolean flag to enable PNG generation.
      *     - Any other custom options for processing.
      */
-    public function run(string $scadFileName, array $options = [])
+    public function run(string $scadFileName, array $options = [], array $sets = [])
     {
         // Determine the JSON input and SCAD file names based on the provided file name
         if (str_ends_with($scadFileName, '.scad') === false) {
@@ -50,21 +53,15 @@ class Executor
         }
 
         // Determine the JSON output file name
-        $jsonOutputFile = empty($options['output-json']) === false ? $options['output-json'] : $fileName . '.json';
+        $this->jsonOutputFile = empty($options['output-json']) === false ? $options['output-json'] : $fileName . '.json';
+        $jsonOutputFile = $this->jsonOutputFile;
         $outputDirectory = $this->outputDirectory;
 
         // Get the JSON input file from options
         $jsonInput = $options['i'] ?? $options['input-json'];
 
         // If the JSON output file exists, load its content; otherwise, generate it
-        if (file_exists($jsonOutputFile)) {
-            $result = json_decode(file_get_contents($jsonOutputFile), true);
-        } else {
-            $versions = new Version($jsonInput); // Create a Version object from the JSON input
-            $result = $versions->toArray();     // Convert the version data to an array
-            $result['count'] = count($result['parameterSets']); // Add a count of parameter sets
-            file_put_contents($jsonOutputFile, json_encode($result)); // Save the result to the JSON output file
-        }
+        
 
         // Define directories for PNG and STL outputs
         $pngDir = $outputDirectory . '_png/';
@@ -80,6 +77,8 @@ class Executor
             mkdir($pngDir);
         }
 
+        $result = $this->createVersions($jsonInput, $jsonOutputFile); // Get the JSON data
+
         // Identify missing PNG and STL files based on the parameter sets
         foreach ($result['parameterSets'] as $name => $item) {
             if (!file_exists($pngDir . $name . '.png') && key_exists('images', $options) === true) {
@@ -93,15 +92,41 @@ class Executor
 
         // Generate missing PNG files in parallel if the 'images' option is enabled
         if (!empty($missingPng) && key_exists('images', $options) === true) {
-            $commands = array_map(fn($name) => "openscad --render -q -o {$pngDir}{$name}.png -p {$jsonOutputFile} -P {$name} {$scadFileName}.scad", $missingPng);
+            $commands = array_map(function($name) use ($pngDir, $jsonOutputFile, $scadFileName, $sets) {
+                if (in_array($name, $sets) === true || empty($sets) === true) {
+                    return "openscad --render -q -o {$pngDir}{$name}.png -p {$jsonOutputFile} -P {$name} {$scadFileName}.scad";
+                } 
+                return null;
+            }, $missingPng);
             self::parallelExec($commands);
         }
 
         // Generate missing STL files in parallel
         if (!empty($missingStl)) {
-            $commands = array_map(fn($name) => "openscad -q -o {$stlDir}{$name}.stl -p {$jsonOutputFile} -P {$name} {$fileName}.scad", $missingStl);
+            $commands = array_map(function($name) use ($stlDir, $jsonOutputFile, $fileName, $sets) {
+                if (in_array($name, $sets) === true || empty($sets) === true) {
+                    return "openscad -q -o {$stlDir}{$name}.stl -p {$jsonOutputFile} -P {$name} {$fileName}.scad";
+                } 
+                return null;
+            }, $missingStl);
             self::parallelExec($commands);
         }
+    }
+
+    public function createVersions(string $jsonInput, string $jsonOutputFile = '', bool $force = false): array
+    {
+        if (empty($jsonOutputFile) === true) {
+            $jsonOutputFile = $this->outputDirectory . '/versions.json'; // Default output file name
+        }
+        if (file_exists($jsonOutputFile) === true && $force === false) {
+            $result = json_decode(file_get_contents($jsonOutputFile), true);
+        } else {
+            $this->version = new Version($jsonInput); // Create a Version object from the JSON input
+            $result = $this->version->toArray();     // Convert the version data to an array
+            $result['count'] = count($result['parameterSets']); // Add a count of parameter sets
+            file_put_contents($jsonOutputFile, json_encode($result)); // Save the result to the JSON output file
+        }
+        return $result;
     }
 
     /**
