@@ -18,14 +18,15 @@ class Executor
      * @param string $outputDirectory Optional output directory path.
      */
     public function __construct(string $outputDirectory = '')
-    {
+        {
         // If no output directory is provided, use the default directory
         if (empty($outputDirectory) === true) {
             $outputDirectory =  (constant('ROOT_DIR') ?? '.') . '/ScadVersions/Output';
-            // Create the directory if it doesn't exist
-            if (is_dir($outputDirectory) === false) {
-                mkdir($outputDirectory, 0777, true);
-            }
+        }
+        
+        // Create the directory if it doesn't exist
+        if (is_dir($outputDirectory) === false) {
+            mkdir($outputDirectory, 0777, true);
         }
         $this->outputDirectory = $outputDirectory;
     }
@@ -67,8 +68,8 @@ class Executor
         
 
         // Define directories for PNG and STL outputs
-        $pngDir = $outputDirectory . '_png/';
-        $stlDir = $outputDirectory . '_stl/';
+        $pngDir = $outputDirectory . '/pngs/';
+        $stlDir = $outputDirectory . '/stls/';
         $missingPng = []; // List of missing PNG files
         $missingStl = []; // List of missing STL files
 
