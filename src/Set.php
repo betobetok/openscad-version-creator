@@ -98,27 +98,34 @@ class Set
         return $this->name;
     }
 
+    /**
+    * Retrieves a specific parameter set based on the given index.
+    *
+    * This method calculates the values for each variable in the set
+    * by determining the appropriate index for each variable based on
+    * the provided set index. It uses modular arithmetic to cycle through
+    * the possible values of each variable.
+    *
+    * @param int $setIndex The index of the parameter set to retrieve.
+    * @return array An associative array where the keys are variable names
+    *               and the values are the corresponding variable values
+    *               for the specified set index.
+    */
     public function getSet(int $setIndex): array
     {
         $set = [];
-        $prev = 0;
-
+        $prev = 1;
+    
         foreach ($this->variables as $k => $variable) {
-            switch ($a = ($setIndex - $prev) / $variable->count()) {
-                case $a > 1:
-                    $varIndex = $variable->count() - 1;
-                    break;
-                case $a < 0:
-                    $varIndex = 0;
-                    break;
-                default:
-                    $varIndex = $setIndex - $prev;
-                    break;
+            $count = $variable->count();
+            $varIndex = (int)floor($setIndex / $prev) % $count;
+            $prev *= $count;
+            if ($varIndex >= 0) {
+                $set[$variable->getName()] = $variable->getValue($varIndex);
             }
-            $set[$variable->getName()] = $variable->getValue($varIndex);
-            $prev += $variable->count();
-        }
 
+        }
+    
         return $set;
     }
 

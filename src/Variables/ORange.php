@@ -20,8 +20,8 @@ class ORange extends Variable
             throw new \InvalidArgumentException('Invalid range format. Expected format: start:step:end or start:end');
         }
         $this->start = (float)$config[0] ?? 0;
-        $this->end = count($config) === 2 ? $config[1] : (float)$config[2];
-        $this->step = (count($config) === 2 ? 1 : (float)$config[1]) ?? 1;
+        $this->end = count($config) === 2 ? $config[1] : (float)round($config[2], 2);
+        $this->step = (count($config) === 2 ? 1 : (float)round($config[1], 2)) ?? 1;
         if ($this->step <= 0) {
             throw new \InvalidArgumentException('Step must be greater than 0.');
         }
