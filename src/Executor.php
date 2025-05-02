@@ -46,7 +46,7 @@ class Executor
     public function run(string $scadFileName, array $options = []): array
     {
         // Determine the JSON input and SCAD file names based on the provided file name
-        if (str_ends_with($scadFileName, '.scad') === false) {
+        if (str_ends_with($scadFileName, '.scad') === true) {
             $jsonInput = substr($scadFileName, 0, -4) . '.json';
             $fileName = substr($scadFileName, 0, -5);
         } else {
