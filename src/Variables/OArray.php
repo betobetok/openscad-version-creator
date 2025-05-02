@@ -13,6 +13,7 @@ class OArray extends Variable
     {
         $this->name = $name;
         $this->elements = $config;
+        $this->type = 'array';
     }
 
     public function getElements()

@@ -5,7 +5,7 @@ namespace VersionCreator\Variables;
 abstract class Variable
 {
     protected string $name;
-    private string $type;
+    protected string $type;
 
     public static function getVariable($type, $value, $name): Variable
     {

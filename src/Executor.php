@@ -125,7 +125,7 @@ class Executor
         if (file_exists($jsonOutputFile) === true && $force === false) {
             $result = json_decode(file_get_contents($jsonOutputFile), true);
         } else {
-            $this->version = new Version($jsonInput); // Create a Version object from the JSON input
+            $this->version = new Version(file_get_contents($jsonInput)); // Create a Version object from the JSON input
             $result = $this->version->toArray();     // Convert the version data to an array
             $result['count'] = count($result['parameterSets']); // Add a count of parameter sets
             file_put_contents($jsonOutputFile, json_encode($result)); // Save the result to the JSON output file

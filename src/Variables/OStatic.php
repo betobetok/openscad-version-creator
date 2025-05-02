@@ -15,7 +15,8 @@ class OStatic extends Variable
     public function __construct($config, string $name)
     {
         $this->name = $name;
-        $this->value = $config;
+        $this->value = is_numeric($config) ? (float)$config : $config;
+        $this->type = 'static';
     }
 
     public function getValue(int $key): mixed
