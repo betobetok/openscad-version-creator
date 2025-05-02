@@ -87,11 +87,18 @@ class Executor
 
         // Identify missing PNG and STL files based on the parameter sets
         foreach ($result['parameterSets'] as $name => $item) {
-            if ((file_exists($pngDir . $name . '.png') === false || $force === true) && key_exists('images', $options) === true) {
+            if (
+                (in_array($name, $sets) === true || empty($sets) === true) &&
+                (file_exists($pngDir . $name . '.png') === false || $force === true) && 
+                key_exists('images', $options) === true
+            ){
                 $missingPng[] = $name;
             }
 
-            if (file_exists($stlDir . $name . '.stl') === false || $force === true) {
+            if (
+                (in_array($name, $sets) === true || empty($sets) === true) &&
+                (file_exists($stlDir . $name . '.stl') === false || $force === true)
+            ){
                 $missingStl[] = $name;
             }
         }
