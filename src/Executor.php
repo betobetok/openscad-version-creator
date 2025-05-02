@@ -65,7 +65,9 @@ class Executor
 
         // Get the JSON input file from options
         $jsonInput = $options['i'] ?? $options['input-json'];
-
+        if (empty($jsonInput) === true) {
+            throw new \Exception('No config input JSON file provided.'); // Throw an exception if no input JSON is provided
+        }
         // If the JSON output file exists, load its content; otherwise, generate it
         
 
