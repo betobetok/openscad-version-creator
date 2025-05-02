@@ -47,7 +47,7 @@ class Version
         // Generate parameter sets for each combination in the set
         for ($i = 0; $i < $this->set->getNumberOfSets(); $i++) {
             $setVersion = $this->set->getSet($i); // Get the current set
-            $this->versions['parameterSets'][] = $this->getArrayVersion($setVersion); // Convert it to an array and add it to the versions
+            $this->versions['parameterSets'] = array_merge($this->versions['parameterSets'], $this->getArrayVersion($setVersion));  // Convert it to an array and add it to the versions
         }
     }
 
