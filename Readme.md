@@ -76,9 +76,9 @@ php bin/openscad-executor
 
 ### Configuration
 
-The script uses JSON files to define input configurations. An example configuration file can be found in `New set 1_config.json`.
+The script uses JSON files to define input configurations. An example configuration file can be found in `example_config.json`.
 
-#### Example Configuration: `New set 1_config.json`
+#### Example Configuration: `example_config.json`
 
 This file defines the parameters and variables used to generate multiple versions of 3D models. Below is an explanation of its structure:
 
@@ -162,7 +162,7 @@ try {
     // Define the SCAD file name and options
     $scadFileName = 'example.scad'; //SCAD file to be prosseced to get the stl archives
     $options = [
-        'input-json' => __DIR__ . '/New set 1_config.json', // Path to the input JSON configuration (see example configuration)
+        'input-json' => __DIR__ . '/example_config.json', // Path to the input JSON configuration (see example configuration)
         'output-json' => __DIR__ . '/output/versions.json', // Path to the output JSON file (Openscad customizer compatible json)
         'images' => true, // Enable PNG generation
         'sets' => [], // Process all sets (leave empty for all, or use a generated name to get just the desired stl)
