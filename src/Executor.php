@@ -166,10 +166,9 @@ class Executor
                 if (empty($command) === true) {
                     continue; // Skip empty commands
                 }
-                echo '.'; // Print a dot for progress indication
                 $processes[] = proc_open($command, [], $pipes); // Start the process
             }
-            echo PHP_EOL; // New line after each chunk
+        
             // Wait for all processes in the current chunk to finish
             foreach ($processes as $process) {
                 if (is_resource($process)) {
