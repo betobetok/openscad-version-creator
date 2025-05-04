@@ -9,25 +9,11 @@
     },
     "variables": {
         "$font": [
-            "Centaur:style=Regular",
-            "Century:style=Regular",
-            "Chiller:style=Regular",
-            "Comic Sans MS:style=RegularConsolas:style=Regular",
-            "Cookie:style=Regular",
-            "Corbel:style=Bold",
-            "Curlz MT:style=Regular",
-            "David CLM:style=Medium",
-            "DejaVu Sans:style=Condensed Oblique",
-            "Euphorigenic:style=Regular",
-            "Freestyle Script:style=Regular",
-            "High Tower Text:style=Regular",
             "Impact:style=Regular",
             "Ink Free:style=Regular",
-            "Jokerman:style=Regular",
-            "Linux Libertine G:style=Regular",
-            "Impact:style=Regular"
+            "Jokerman:style=Regular"
         ],
-        "$fontSize": "[0:0.1:2]",
+        "$fontSize": "[1:0.1:1.2]",
         "cut_corners": [
             "true",
             "false"
