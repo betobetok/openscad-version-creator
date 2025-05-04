@@ -2,13 +2,40 @@
 <?php
 
 require __DIR__ . '/../vendor/autoload.php';
-define('ROOT_DIR', __DIR__ . '/..');
+define('ROOT_DIR', __DIR__ . '/../../../../');
+define('ASK_DIR', __DIR__ . '/../');
 
 use VersionCreator\Executor;
-use VersionCreator\Version;
 
-//$executor = new Executor();
+$args = $_SERVER['argv'];
 
-$file = '../dados/dice5-1.json';
-$verJson = new Version($file);
-echo json_encode($verJson);
+if (count($args) < 2) {
+    echo 'Please provide the path to the OpenSCAD file and the config file.' . PHP_EOL;
+    echo 'Usage: php ' . $args[0] . ' <path_to_openscad_file> <path_to_config_file>' . PHP_EOL;
+    exit(1);
+}
+
+$scadFile = $args[2];
+$confFile = $args[1] ?? null;
+if (!file_exists($scadFile)) {
+    echo 'The OpenSCAD file does not exist.' . PHP_EOL;
+    echo 'Usage: php ' . $args[0] . ' <path_to_openscad_file> <path_to_config_file>' . PHP_EOL;
+    exit(1);
+}
+if ($confFile && !file_exists($confFile)) {
+    echo 'The config file does not exist.' . PHP_EOL;
+    echo 'Usage: php ' . $args[0] . ' <path_to_openscad_file> <path_to_config_file>' . PHP_EOL;
+    exit(1);
+}
+
+$executor = new Executor(ROOT_DIR);
+$verJson = $executor->run($scadFile, ['input-json' => $confFile, 'in-command-line' => true]);
+echo 'Version JSON:' . PHP_EOL;
+echo '------------------' . PHP_EOL;
+echo 'Input JSON: ' . $confFile . PHP_EOL;
+echo 'Output JSON: ' . $verJson['json'] . PHP_EOL;
+echo '------------------' . PHP_EOL;
+echo 'STL files generated:' . count($verJson['stls']) . PHP_EOL;
+echo 'Output dir:' . $executor->getStlOutputDir() . PHP_EOL;
+echo '------------------' . PHP_EOL;
+

@@ -2,11 +2,11 @@
 
 namespace VersionCreator;
 
+use PHPUnit\Event\Runtime\PHP;
+
 class Executor
 {
     private string $outputDirectory; // Directory where output files will be stored
-    private string $scadFileName;    // Name of the SCAD file to process
-    private string $jsonInput;      // JSON input file name
     private string $jsonOutputFile; // JSON output file name
     private Version $version; // Version object for processing
 
@@ -41,6 +41,7 @@ class Executor
      *     - 'images': Boolean flag to enable PNG generation.
      *     - 'sets' or 's': Array with names of sets to process; if empty, all sets will be processed.
      *     - 'force' or 'f': Boolean flag to force the generation of the JSON output file.
+     *     - 'concurrency': Number of concurrent processes to run for generating PNG and STL files.
      *     - Any other custom options for processing.
      */
     public function run(string $scadFileName, array $options = []): array
@@ -113,7 +114,7 @@ class Executor
                 } 
                 return null;
             }, $missingPng);
-            self::parallelExec($commands);
+            self::parallelExec($commands, $options['concurrency'] ?? 4, $options['command-line'] ?? false);
         }
 
         // Generate missing STL files in parallel
@@ -124,7 +125,7 @@ class Executor
                 } 
                 return null;
             }, $missingStl);
-            self::parallelExec($commands);
+            self::parallelExec($commands, $options['concurrency'] ?? 4, $options['in-command-line'] ?? false);
         }
 
         return [
@@ -156,7 +157,7 @@ class Executor
      * @param array $commands List of commands to execute.
      * @param int $concurrency Number of commands to run in parallel.
      */
-    static public function parallelExec(array $commands, int $concurrency = 4)
+    static public function parallelExec(array $commands, int $concurrency = 4, bool $inCommandLine = false): void
     {
         $processes = []; // List of active processes
 
@@ -166,9 +167,14 @@ class Executor
                 if (empty($command) === true) {
                     continue; // Skip empty commands
                 }
+                if ($inCommandLine) {
+                    echo '.'; // Print a dot for each command executed
+                }
                 $processes[] = proc_open($command, [], $pipes); // Start the process
             }
-        
+            if ($inCommandLine) {
+                echo '.' . PHP_EOL; // Print a dot for each command executed
+            }
             // Wait for all processes in the current chunk to finish
             foreach ($processes as $process) {
                 if (is_resource($process)) {
@@ -190,5 +196,15 @@ class Executor
     function makeName($name, $placeholder, $value): string
     {
         return str_replace('(' . $placeholder . ')',  preg_replace("/[^A-Za-z0-9]/", '-', $value), $name);
+    }
+
+    /**
+     * Returns the output directory path of stl archives.
+     *
+     * @return string The output directory path.
+     */
+    public function getStlOutputDir(): string
+    {
+        return realpath(dirname($this->outputDirectory)) . '/stls/';
     }
 }
