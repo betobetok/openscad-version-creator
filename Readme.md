@@ -71,7 +71,7 @@
 The main script is located at `bin/openscad-executor`. You can run it from the command line:
 
 ```bash
-php bin/openscad-executor
+php bin/openscad-executor  <path_to_openscad_file> <path_to_config_file>
 ```
 
 ### Configuration
