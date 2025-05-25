@@ -9,6 +9,7 @@ class Executor
     private string $outputDirectory; // Directory where output files will be stored
     private string $jsonOutputFile; // JSON output file name
     private Version $version; // Version object for processing
+    private string $scadFileName; // Name of the SCAD file to process
 
 
     /**
@@ -31,6 +32,46 @@ class Executor
         $this->outputDirectory = $outputDirectory;
     }
 
+    public function getScadFileName(): string
+    {
+        return $this->scadFileName;
+    }
+
+    public function setScadFileName(string $scadFileName): void
+    {
+        $this->scadFileName = $scadFileName;
+    }
+
+    public function generateBaseSTL(): void
+    {
+        if (empty($this->scadFileName)) {
+            throw new \RuntimeException("SCAD file name is not set. Use setScadFileName() to define it.");
+        }
+    
+        $scadFilePath = $this->scadFileName;
+        if (!file_exists($scadFilePath)) {
+            throw new \RuntimeException("SCAD file '{$scadFilePath}' does not exist.");
+        }
+    
+        $outputDirectory = $this->outputDirectory;
+        $baseStlFile = $outputDirectory . '/base.stl';
+    
+        // Ensure the output directory exists
+        if (!is_dir($outputDirectory)) {
+            mkdir($outputDirectory, 0777, true);
+        }
+    
+        // Command to generate the base STL
+        $command = escapeshellcmd("openscad -o {$baseStlFile} {$scadFilePath}");
+        exec($command, $output, $returnVar);
+    
+        if ($returnVar !== 0) {
+            throw new \RuntimeException("Failed to generate base STL file. Command: $command");
+        }
+    
+        echo "Base STL file generated successfully: {$baseStlFile}" . PHP_EOL;
+    }
+
     /**
      * Main method to process the SCAD file and generate outputs.
      *
@@ -44,8 +85,12 @@ class Executor
      *     - 'concurrency': Number of concurrent processes to run for generating PNG and STL files.
      *     - Any other custom options for processing.
      */
-    public function run(string $scadFileName, array $options = []): array
+    public function run(string $scadFileName = '', array $options = []): array
     {
+        if (empty($scadFileName) === true) {
+            $scadFileName = $this->scadFileName;
+        }
+            
         // Determine the JSON input and SCAD file names based on the provided file name
         if (str_ends_with($scadFileName, '.scad') === true) {
             $jsonInput = substr($scadFileName, 0, -4) . '.json';
