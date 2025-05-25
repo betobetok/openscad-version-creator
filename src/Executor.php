@@ -42,7 +42,7 @@ class Executor
         $this->scadFileName = $scadFileName;
     }
 
-    public function generateBaseSTL(): void
+    public function generateBaseSTL($name = 'base.stl'): void
     {
         if (empty($this->scadFileName)) {
             throw new \RuntimeException("SCAD file name is not set. Use setScadFileName() to define it.");
@@ -54,7 +54,7 @@ class Executor
         }
     
         $outputDirectory = $this->outputDirectory;
-        $baseStlFile = $outputDirectory . '/base.stl';
+        $baseStlFile = $outputDirectory . '/' . $name;
     
         // Ensure the output directory exists
         if (!is_dir($outputDirectory)) {
