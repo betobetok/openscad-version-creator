@@ -179,4 +179,23 @@ class Version
     {
         return str_replace('(' . $placeholder . ')',  preg_replace("/[^A-Za-z0-9]/", '-', $value), $name);
     }
+
+    /**
+     * public method to get the version name by replacing placeholders with values.
+     *
+     * @param string $name The original string containing the placeholder.
+     * @param array $value The value to replace the placeholder with.
+     * @return string The modified string with the placeholder replaced.
+     */
+    static public function getVersionName(string $name, array $value): string
+    {
+        preg_match_all('/\((.*?)\)/', $name, $matches);
+        if (count($value) > count($matches[1])) {
+            foreach ($matches[1] as $placeHolder) {
+                $name = self::makeName($name, $placeHolder, $conf[$placeHolder] ?? ''); // Replace placeholders with values
+            }
+            return $name;
+        }
+        return '';
+    }
 }
