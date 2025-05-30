@@ -72,6 +72,60 @@ class Executor
         echo "Base STL file generated successfully: {$baseStlFile}" . PHP_EOL;
     }
 
+    public static function getLibrariesPaths(): array
+    {
+
+        $command = escapeshellcmd("openscad --info");
+        exec($command, $output, $returnVar);
+
+        $libraryPaths = [];
+        foreach ($output as $k => $line) {
+            if ($line === 'OpenSCAD library path:') {
+                $k += 2;
+                while (empty( trim($output[$k])) === false) {
+                    $libraryPaths[] = trim($output[$k]);
+                    $k++;
+                }
+                break;
+            }
+        }
+        return $libraryPaths;
+    }
+
+    public static function getIncludedLibraries(string $scadFileContent): array
+    {
+        // Rutas de las librerías estándar de OpenSCAD (puedes obtenerlas con `openscad --info`)
+        $libraryPaths = self::getLibrariesPaths();
+
+        // Expresión regular para capturar los `include`
+        preg_match_all('/^\s*include <([a-zA-Z0-9\-_\/\.]+)>/m', $scadFileContent, $matches);
+
+        $installedLibraries = [];
+        $customIncludes = [];
+
+        foreach ($matches[1] as $include) {
+            $isLibrary = false;
+
+            // Verificar si el archivo pertenece a una de las rutas de librerías estándar
+            foreach ($libraryPaths as $path) {
+                if (strpos($include, $path) === 0) {
+                    $installedLibraries[] = $include;
+                    $isLibrary = true;
+                    break;
+                }
+            }
+
+            // Si no pertenece a las librerías estándar, es un include personalizado
+            if (!$isLibrary) {
+                $customIncludes[] = $include;
+            }
+        }
+
+        return [
+            'installed_libraries' => $installedLibraries,
+            'custom_includes' => $customIncludes,
+        ];
+    }
     /**
      * Main method to process the SCAD file and generate outputs.
      *
